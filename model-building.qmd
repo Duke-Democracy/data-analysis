@@ -1,0 +1,36 @@
+---
+title: "model-building"
+format: html
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+#load libraries
+library(tidyverse)
+library(cpsvote)
+library(srvyr)
+```
+
+```{r}
+#load data
+data_20 <- read_csv("data/cps_csv_files/2020 cps.csv")
+```
+
+```{r}
+#clean 2020 data
+data_20 <- data_20 |>
+  select(REGION, STATEFIP, AGE, SEX, RACE, HISPAN, EDUC, DIFFANY, SCHLCOLL, VOSUPPWT)
+
+#region: recode into 1-4
+#region: 11, 12 = Northeast, 21, 22 = Midwest, 31-33 = South, 41, 42 = West
+#statefip : recode
+#sex: recode 1 = male, 2 = female, 9 = NIU
+#race: 100 = White, 200 = Black, 300 = AmIn, 650-652 and 809 = AAPI, 700 = Other, 801-808 = Biracial
+#hispan: 000 = Not Hispanic, 100, 102, 103, 104, 108, 109, 200, 300, 400, 500, 600, 710,  611, 612 = Hispanic, 901 and 902 = NIU
+#diffany: 1 = No, 2 = Yes, 0 = NIU
+#educ: recode
+#schlcoll: 3,4, = College, 1,2 = HS, 5 = Non-College, 0 = NIU
+#rename them all something descriptive
+```
