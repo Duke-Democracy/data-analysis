@@ -20,8 +20,58 @@ data_20 <- read_csv("data/cps_csv_files/2020 cps.csv")
 
 ```{r}
 #clean 2020 data
-data_20 <- data_20 |>
+data_20 <- data_20 |> mutate(
+  REGION = recode(REGION, 
+    "11" = "Northeast",
+    "12" = "Northeast",
+    "21" = "Midwest",
+    "22" = "Midwest",
+    "31" = "South", 
+    "32" = "South", 
+    "33" = "South", 
+    "41" = "West",
+    "42" = "South", 
+    .default = "Other"), 
+  SEX = recode(SEX,
+    "1" = "Male", 
+    "2" = "Female",
+    .default = "NIU"),
+  RACE = recode(RACE, 
+    "100" = "White", 
+    "200" = "Black", 
+    "300" = "AmIn", 
+    "650" = "AAPI", 
+    "651" = "AAPI", 
+    "652" = "AAPI", 
+    "809" = "AAPI", 
+    "700" = "OTHER",
+    .default = "Multi-racial"),
+  HISPAN = recode(HISPAN,
+    "000" = "Not Hispanic",            
+    "901" =  "NIU", 
+    "902" =  "NIU", 
+    .default = "Hispanic"), 
+  DIFFANY = recode(DIFFANY,
+    "1" = "No", 
+    "2" = "Yes",
+    "0" = "NIU"), 
+  SCHLCOLL = recode(SCHLCOLL, 
+    "3" = "College", 
+    "4" = "College",
+    "5" = "Non-College",
+    "1" = "HS", 
+    "2" = "HS", 
+    "0" = "NIU"),
+   EDUC = case_when(EDUC >= 999 ~ "Unknown", 
+                                EDUC >= 120 ~ "Beyond Bachelors", 
+                                EDUC >= 80 ~ "Some College", 
+                                EDUC == 73 ~ "HS", 
+                                EDUC >= 2 ~ "No HS", 
+                                EDUC <= 1 ~ "NIU")) |> 
   select(REGION, STATEFIP, AGE, SEX, RACE, HISPAN, EDUC, DIFFANY, SCHLCOLL, VOSUPPWT)
+
+
+
 
 #region: recode into 1-4
 #region: 11, 12 = Northeast, 21, 22 = Midwest, 31-33 = South, 41, 42 = West
