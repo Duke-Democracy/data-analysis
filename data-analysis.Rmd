@@ -3,5 +3,34 @@ library(cpsvote)
 library(srvyr)
 library(dplyr)
 library(tidyverse)
+library(purrr)
+```
+
+```{r}
+mytibble <- tibble(
+  myfactor = factor(c("A", "B", "C", "A", "C", "B")),
+  value = rnorm(6)
+)
+
+# Split the tibble by factor column
+split_tibble <- mytibble %>% 
+  group_split(myfactor)
+
+# Apply a function to each subset
+result_list <- split_tibble %>% 
+  map(~ {
+    # Do some operation on the current subset
+    current_subset <- .
+    mean(current_subset$value)
+  })
+
+# Combine the results into a tibble
+result_tibble <- tibble(
+  myfactor = levels(mytibble$myfactor),
+  result = unlist(result_list)
+)
+
+# Print the results
+print(result_tibble)
 ```
 
