@@ -72,7 +72,7 @@ data_18 <- data_18 |> mutate(
     RACE == 100 ~ "White", 
     RACE == 200 ~ "Black", 
     RACE == 300 ~ "AmIn", 
-    RACE == 700 ~ "OTHER",
+    RACE == 700 ~ "Other",
     RACE %in% c(650, 651, 652, 809) ~ "AAPI", 
     .default = "Multi-racial"),
   HISPAN = recode(HISPAN,
@@ -138,7 +138,7 @@ data_18 <- merge(data_18, states_df, by="STATEFIP", all = FALSE)
 #create poststrat table
 
 data_18_poststrat <- data_18 |>
-  group_by(STATE, RACE, AGE, HISPAN, SEX, DIFFANY, EDUC, VOTED) |>
+  group_by(STATE, RACE, AGE, HISPAN, DIFFANY, EDUC, VOTED) |>
   count()
 ```
 
@@ -166,16 +166,23 @@ augmented_data_18 <- data_18 |>
 split_tibble <- augmented_data_18 |>
     group_split(STATE)
   
-result_list <- split_tibble %>% 
-  mutate(ADJ_VOSUPPWT = map_dbl(VOSUPPWT))
+#result_list <- split_tibble |>
+  #mutate(ADJ_VOSUPPWT = map_dbl(VOSUPPWT) * )
   
 ```
 
 ```{r}
 #begin model fitting
-fit <- stan_glmer(VOTED ~ factor(AGE) + factor(RACE) + factor(HISPAN) +.,
-                  family = binomial(link = "logit",
-                                    data = ))
+fit <- stan_glmer(VOTED ~ (1 | STATE) + (1 | RACE) + HISPAN + (1 | EDUC) + (1 | AGE) + DIFFANY,
+  family = binomial(link = "logit"),
+  data = data_18,
+  prior = normal(0, 1, autoscale = TRUE),
+  prior_covariance = decov(scale = 0.50),
+  adapt_delta = 0.99,
+  refresh = 0,
+  seed = 1010)
+
+print(fit)
 ```
 
 For Saturday
@@ -184,4 +191,4 @@ For Saturday
 
 -   Build an MRP model for Alabama only
 
--   Figure out how to incorporate Hurachen weights into MRP model
+-   Figure out how to incorporate Hur/Achen weights into MRP model
