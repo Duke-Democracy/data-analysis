@@ -1,5 +1,5 @@
 ---
-title: "model-building"
+title: "model-building-mrp"
 format: html
 editor: visual
 editor_options: 
@@ -18,37 +18,13 @@ library(tidycensus)
 ```
 
 ```{r}
-#load VEP data
-vep_20 <- read_csv("data/2020 VEP.csv") |>
-  filter(STATE != "United States") |>
-  mutate(total_ballot = as.numeric(gsub("%","", total_ballot)) / 100)
-
-vep_18 <- read_csv("data/2018 VEP.csv") |>
-  filter(STATE != "United States") |>
-  mutate(total_ballot = as.numeric(gsub("%","", total_ballot)) / 100)
-
-vep_16 <- read_csv("data/2016 VEP.csv") |>
-  filter(STATE != "United States") |>
-  mutate(total_ballot = as.numeric(gsub("%","", total_ballot)) / 100)
-
-vep_14 <- read_csv("data/2014 VEP.csv") |>
-  filter(STATE != "United States") |>
-  mutate(total_ballot = as.numeric(gsub("%","", total_ballot)) / 100)
-
-vep_12 <- read_csv("data/2012 VEP.csv") |>
-  filter(STATE != "United States") |>
-  mutate(total_ballot = as.numeric(gsub("%","", total_ballot)) / 100)
-
-vep_10 <- read_csv("data/2010 VEP.csv") |>
-  filter(STATE != "United States") |>
-  mutate(total_ballot = as.numeric(gsub("%","", total_ballot)) / 100)
-```
-
-```{r}
 #load data
 data_20 <- read_csv("data/cps_csv_files/2020 cps.csv")
-data_12 <- read_csv("data/cps_csv_files/2012 cps.csv")
 data_18 <- read_csv("data/cps_csv_files/2018 cps.csv")
+data_16 <- read_csv("data/cps_csv_files/2016 cps.csv")
+data_14 <- read_csv("data/cps_csv_files/2014 cps.csv")
+data_12 <- read_csv("data/cps_csv_files/2012 cps.csv")
+data_10 <- read_csv("data/cps_csv_files/2010 cps.csv")
 ```
 
 ```{r}
@@ -122,17 +98,6 @@ names(states_df) <- c('STATEFIP', 'STATE')
 
 data_18 <- merge(data_18, states_df, by="STATEFIP", all = FALSE)
 
-
-#region: recode into 1-4
-#region: 11, 12 = Northeast, 21, 22 = Midwest, 31-33 = South, 41, 42 = West
-#statefip : recode
-#sex: recode 1 = male, 2 = female, 9 = NIU
-#race: 100 = White, 200 = Black, 300 = AmIn, 650-652 and 809 = AAPI, 700 = Other, 801-808 = Biracial
-#hispan: 000 = Not Hispanic, 100, 102, 103, 104, 108, 109, 200, 300, 400, 500, 600, 710,  611, 612 = Hispanic, 901 and 902 = NIU
-#diffany: 1 = No, 2 = Yes, 0 = NIU
-#educ: recode
-#schlcoll: 3,4, = College, 1,2 = HS, 5 = Non-College, 0 = NIU
-
 ```
 
 ```{r}
@@ -193,7 +158,7 @@ turnout_df_2018 <- vote_totals_2018 |>
   left_join(vote_pop_2018, by = "STATE") |>
   mutate(turnout_rate = total_votes/total_sample)
 
-ggplot(data = turnout_df, aes(x = STATE, y = turnout_rate)) +
+ggplot(data = turnout_df_2018, aes(x = STATE, y = turnout_rate)) +
   geom_point() +
   geom_line(aes(group = 1)) +
   theme(axis.text.x = element_text(angle = 45))
@@ -210,3 +175,9 @@ fit <- stan_glmer(VOTED ~ (1 | STATE) + (1 | RACE) + factor(HISPAN) + (1 | EDUC)
   refresh = 0,
   seed = 1010)
 ```
+
+```{r}
+#
+```
+
+-   Posterior prediction
