@@ -34,3 +34,61 @@ result_tibble <- tibble(
 print(result_tibble)
 ```
 
+
+
+
+
+
+
+
+```{r}
+#create hur and achen weights
+
+data_18_weighted <- data_18 |>
+  as_survey_design(weights = VOSUPPWT)
+
+turnout_18 <- data_18_weighted |>
+  group_by(STATE) |>
+  summarize(turnout = survey_mean(VOTED == "Yes", na.rm = TRUE))
+
+adjusted_turnout_18 <- turnout_18 |>
+  left_join(vep_18, by = "STATE") |>
+  mutate(weight_nonvoter_num = 1 - total_ballot,
+         weight_nonvoter_denom = 1 - turnout,
+         weight_voter = total_ballot/turnout,
+         weight_nonvoter = weight_nonvoter_num/weight_nonvoter_denom) |>
+  select(STATE, weight_nonvoter, weight_voter)
+
+augmented_data_18 <- data_18 |>
+  left_join(adjusted_turnout_18, by = "STATE")
+
+split_tibble <- augmented_data_18 |>
+    group_split(STATE)
+  
+#result_list <- split_tibble |>
+  #mutate(ADJ_VOSUPPWT = map_dbl(VOSUPPWT) * )
+  
+```
+
+```{r}
+#begin model fitting
+fit <- stan_glmer(VOTED ~ (1 | STATE) + (1 | RACE) + HISPAN + (1 | EDUC) + (1 | AGE) + DIFFANY,
+  family = binomial(link = "logit"),
+  data = data_18,
+  prior = normal(0, 1, autoscale = TRUE),
+  prior_covariance = decov(scale = 0.50),
+  adapt_delta = 0.99,
+  refresh = 0,
+  seed = 1010)
+
+print(fit)
+```
+
+For Saturday
+
+-   Restart using master data and only filtering to Alabama
+
+-   Build an MRP model for Alabama only
+
+-   Figure out how to incorporate Hur/Achen weights into MRP model
+

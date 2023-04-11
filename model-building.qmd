@@ -14,6 +14,7 @@ library(srvyr)
 library(rstanarm)
 library(bayesplot)
 library(purrr)
+library(tidycensus)
 ```
 
 ```{r}
@@ -135,45 +136,72 @@ data_18 <- merge(data_18, states_df, by="STATEFIP", all = FALSE)
 ```
 
 ```{r}
-#create poststrat table
+#create sample data table
 
-data_18_poststrat <- data_18 |>
+data_18_sample <- data_18 |>
   group_by(STATE, RACE, AGE, HISPAN, DIFFANY, EDUC, VOTED) |>
   count()
 ```
 
 ```{r}
-#create hur and achen weights
+#build post-strat table for 2018
+pums_vars_2018 <- pums_variables |>
+  distinct(var_code, var_label, data_type, level)
 
-data_18_weighted <- data_18 |>
-  as_survey_design(weights = VOSUPPWT)
+pums_test <- get_pums(variables = c("RAC1P", "SCHL", "HISP", "DIS", "AGEP"),
+                      survey = "acs1", year = "2018", state = "all", recode = TRUE)
 
-turnout_18 <- data_18_weighted |>
-  group_by(STATE) |>
-  summarize(turnout = survey_mean(VOTED == "Yes", na.rm = TRUE))
 
-adjusted_turnout_18 <- turnout_18 |>
-  left_join(vep_18, by = "STATE") |>
-  mutate(weight_nonvoter_num = 1 - total_ballot,
-         weight_nonvoter_denom = 1 - turnout,
-         weight_voter = total_ballot/turnout,
-         weight_nonvoter = weight_nonvoter_num/weight_nonvoter_denom) |>
-  select(STATE, weight_nonvoter, weight_voter)
+pums_18_test <- pums_test |>
+  rename(HISPAN = HISP_label, RACE = RAC1P_label, EDUC = SCHL_label, STATE = ST_label, AGE = AGEP, DIFFANY = DIS_label) |>
+  filter(RACE != 8) |>
+  mutate(HISPAN = if_else(HISPAN == "Not Spanish/Hispanic/Latino", "Not Hispanic", "Hispanic"),
+         EDUC = if_else(SCHL < 16 | SCHL == "bb", "No HS",
+                        if_else(SCHL < 18, "HS", 
+                                if_else(SCHL < 22, "Some College", "Beyond Bachelors"))),
+         AGE =  case_when(AGE < 30 ~ "18-29", 
+                  AGE < 45 ~ "30-44",
+                  AGE < 65 ~ "45-64",
+                  .default = "65+"),
+         RACE = case_when(RAC1P == 1 ~ "White",
+                          RAC1P == 2 ~ "Black",
+                          RAC1P == 3 | RAC1P == 4 | RAC1P == 5 ~ "AmIn",
+                          RAC1P == 6 | RAC1P == 7 ~ "AAPI",
+                          RAC1P == 9 ~ "Multi-racial"),
+         DIFFANY = if_else(DIS == 1, "Yes", "No"),
+         STATE = str_sub(STATE, end = -4)) |>
+  select(SERIALNO, SPORDER, AGE, HISPAN, STATE, RACE, EDUC, DIFFANY) |>
+  drop_na()
 
-augmented_data_18 <- data_18 |>
-  left_join(adjusted_turnout_18, by = "STATE")
-
-split_tibble <- augmented_data_18 |>
-    group_split(STATE)
-  
-#result_list <- split_tibble |>
-  #mutate(ADJ_VOSUPPWT = map_dbl(VOSUPPWT) * )
-  
+data_18_poststrat <- pums_18_test |>
+  group_by(STATE, RACE, AGE, HISPAN, DIFFANY, EDUC) |>
+  count()
 ```
 
 ```{r}
-#begin model fitting
-fit <- stan_glmer(VOTED ~ (1 | STATE) + (1 | RACE) + HISPAN + (1 | EDUC) + (1 | AGE) + DIFFANY,
+#preliminary analysis: graph proportion of voting
+
+vote_totals_2018 <- data_18 |>
+  group_by(STATE) |>
+  summarize(total_votes = sum(VOTED == "Yes"))
+
+vote_pop_2018 <- data_18 |>
+  group_by(STATE) |>
+  summarize(total_sample = n())
+
+turnout_df_2018 <- vote_totals_2018 |>
+  left_join(vote_pop_2018, by = "STATE") |>
+  mutate(turnout_rate = total_votes/total_sample)
+
+ggplot(data = turnout_df, aes(x = STATE, y = turnout_rate)) +
+  geom_point() +
+  geom_line(aes(group = 1)) +
+  theme(axis.text.x = element_text(angle = 45))
+```
+
+```{r}
+#model fitting
+fit <- stan_glmer(VOTED ~ (1 | STATE) + (1 | RACE) + factor(HISPAN) + (1 | EDUC) + (1 | AGE) + factor(DIFFANY),
   family = binomial(link = "logit"),
   data = data_18,
   prior = normal(0, 1, autoscale = TRUE),
@@ -181,14 +209,4 @@ fit <- stan_glmer(VOTED ~ (1 | STATE) + (1 | RACE) + HISPAN + (1 | EDUC) + (1 | 
   adapt_delta = 0.99,
   refresh = 0,
   seed = 1010)
-
-print(fit)
 ```
-
-For Saturday
-
--   Restart using master data and only filtering to Alabama
-
--   Build an MRP model for Alabama only
-
--   Figure out how to incorporate Hur/Achen weights into MRP model
