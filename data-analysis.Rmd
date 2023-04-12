@@ -84,6 +84,46 @@ fit <- stan_glmer(VOTED ~ (1 | STATE) + (1 | RACE) + HISPAN + (1 | EDUC) + (1 | 
 print(fit)
 ```
 
+{r}
+#ETHNICITY COEFFS
+#mutate(STATE = factor(STATE, levels = c("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "District of Columbia", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming")),
+         #RACE = factor(RACE, levels = c("White", "Black", "AmIn", "AAPI", "Multi-racial")),
+         #HISPAN = factor(HISPAN, levels = c("Not Hispanic", "Hispanic")),
+         #EDUC = factor(EDUC, levels = c("No HS", "HS", "Some College", "Beyond Bachelors")),
+         #AGE = factor(AGE, levels = c("18-29", "30-44", "45-64", "65+")),
+        # DIFFANY = factor(DIFFANY, levels = c("No", "Yes")))
+        
+#RACE COEFFS
+#for state1 through state 51, predict(turnout_mod_thatyear, )
+race_baseline <- tibble(STATE = rep(c("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "District of Columbia", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"), each = 10), 
+                             RACE = rep(c("White", "Black", "AmIn", "AAPI", "Multi-racial"), each = 2, times = 51), 
+                             HISPAN = rep(c("Not Hispanic", "Hispanic"), 255),
+                             AGE = rep(c("18-29"), 510),
+                             DIFFANY = rep(c("No"), 510), 
+                             EDUC = rep(c("No HS"), 510))
+
+disab_baseline <- tibble(STATE = rep(c("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "District of Columbia", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"), each = 2), 
+                             RACE = rep(c("White"), 102), 
+                             HISPAN = rep(c("Not Hispanic"), 102),
+                             AGE = rep(c("18-29"), 102),
+                             DIFFANY = rep(c("No", "Yes"), 51), 
+                             EDUC = rep(c("No HS"), 102))
+
+educ_baseline <- tibble(STATE = rep(c("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "District of Columbia", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"), each = 4), 
+                             RACE = rep(c("White"), 204), 
+                             HISPAN = rep(c("Not Hispanic"), 204),
+                             AGE = rep(c("18-29"), 204),
+                             DIFFANY = rep(c("No"), 204), 
+                             EDUC = rep(c("No HS", "HS", "Some College", "Beyond Bachelors"), 51))
+
+#RACE = rep(c("White", "Black", "AmIn", "AAPI", "Multi-racial"))
+#HISPAN = rep(c("Not Hispanic", "Hispanic"), )
+#AGE = rep(c("18-29", "30-44", "45-64", "65+"), )
+#DIFFANY = rep(c("No", "Yes"), )
+#EDUC = rep(c("No HS", "HS", "Some College", "Beyond Bachelors"), )
+
+write.xlsx(race_baseline, "race_baseline.xlsx")
+
 For Saturday
 
 -   Restart using master data and only filtering to Alabama
@@ -92,3 +132,37 @@ For Saturday
 
 -   Figure out how to incorporate Hur/Achen weights into MRP model
 
+
+turnout_mod_2010 <- svyglm(formula = VOTED ~ STATE + RACE + HISPAN + DIFFANY + AGE + EDUC + STATE*RACE + RACE*EDUC + RACE*HISPAN + AGE*RACE, design = hurachen_data_10, family = quasibinomial)
+
+summary(turnout_mod_2010)
+tidy_turnout_mod_2010 <- tidy(turnout_mod_2010)
+
+
+turnout_mod_2012 <- svyglm(formula = VOTED ~ STATE + RACE + HISPAN + DIFFANY + AGE + EDUC + STATE*RACE + RACE*EDUC + RACE*HISPAN + AGE*RACE, design = hurachen_data_12, family = quasibinomial)
+
+summary(turnout_mod_2012)
+tidy_turnout_mod_2012 <- tidy(turnout_mod_2012)
+write.xlsx(tidy_turnout_mod_2012, 'tidy-2012.xlsx')
+
+turnout_mod_2014 <- svyglm(formula = VOTED ~ STATE + RACE + HISPAN + DIFFANY + AGE + EDUC + STATE*RACE + RACE*EDUC + RACE*HISPAN + AGE*RACE, design = hurachen_data_14, family = quasibinomial)
+
+summary(turnout_mod_2014)
+tidy_turnout_mod_2014 <- tidy(turnout_mod_2014)
+
+turnout_mod_2016 <- svyglm(formula = VOTED ~ STATE + RACE + HISPAN + DIFFANY + AGE + EDUC + STATE*RACE + RACE*EDUC + RACE*HISPAN + AGE*RACE, design = hurachen_data_16, family = quasibinomial)
+
+summary(turnout_mod_2016)
+tidy_turnout_mod_2016 <- tidy(turnout_mod_2016)
+
+turnout_mod_2018 <- svyglm(formula = VOTED ~ STATE + RACE + HISPAN + DIFFANY + AGE + EDUC + STATE*RACE + RACE*EDUC + RACE*HISPAN + AGE*RACE, design = hurachen_data_18, family = quasibinomial)
+
+summary(turnout_mod_2018)
+tidy_turnout_mod_2018 <- tidy(turnout_mod_2018)
+
+turnout_mod_2020 <- svyglm(formula = VOTED ~ STATE + RACE + HISPAN + DIFFANY + AGE + EDUC + STATE*RACE + RACE*EDUC + RACE*HISPAN + AGE*RACE, design = hurachen_data_20, family = quasibinomial)
+
+turnout_mod_2020_race <- svyglm(formula = VOTED ~ STATE + RACE + STATE*RACE, design = hurachen_data_20, family = quasibinomial)
+
+summary(turnout_mod_2020_race)
+tidy_turnout_mod_2020 <- tidy(turnout_mod_2020)
