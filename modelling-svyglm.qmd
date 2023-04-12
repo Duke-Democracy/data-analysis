@@ -9,13 +9,11 @@ editor_options:
 ```{r}
 #load libraries
 library(tidyverse)
-library(cpsvote)
 library(srvyr)
 library(survey)
-library(rstanarm)
-library(bayesplot)
-library(purrr)
-library(tidycensus)
+library(broom)
+library(openxlsx)
+
 ```
 
 ```{r}
@@ -74,16 +72,19 @@ data_10 <- data_10 |> mutate(
     RACE == 300 ~ "AmIn", 
     RACE == 700 ~ "Other",
     RACE %in% c(650, 651, 652, 809) ~ "AAPI", 
-    .default = "Multi-racial"),
+    .default = "Multi-racial") |>
+    factor(levels = c("White", "Black", "AmIn", "AAPI", "Multi-racial")),
   HISPAN = recode(HISPAN,
     "000" = "Not Hispanic",            
     "901" =  "NIU", 
     "902" =  "NIU", 
-    .default = "Hispanic"), 
+    .default = "Hispanic") |>
+    factor(levels = c("Not Hispanic", "Hispanic")), 
   DIFFANY = recode(DIFFANY,
     "1" = "No", 
     "2" = "Yes",
-    "0" = "NIU"), 
+    "0" = "NIU") |>
+    factor(levels = c("No", "Yes")), 
   SCHLCOLL = recode(SCHLCOLL, 
     "3" = "College", 
     "4" = "College",
@@ -101,7 +102,8 @@ data_10 <- data_10 |> mutate(
   AGE = case_when(AGE < 30 ~ "18-29", 
                   AGE < 45 ~ "30-44",
                   AGE < 65 ~ "45-64",
-                  .default = "65+"),
+                  .default = "65+") |>
+    factor(levels = c("18-29", "30-44", "45-64", "65+")),
   VOTED = recode(VOTED,
                  "2" = "Yes",
                  "1" = "No",
@@ -134,16 +136,19 @@ data_12 <- data_12 |> mutate(
     RACE == 300 ~ "AmIn", 
     RACE == 700 ~ "Other",
     RACE %in% c(650, 651, 652, 809) ~ "AAPI", 
-    .default = "Multi-racial"),
+    .default = "Multi-racial")  |>
+    factor(levels = c("White", "Black", "AmIn", "AAPI", "Multi-racial")),
   HISPAN = recode(HISPAN,
     "000" = "Not Hispanic",            
     "901" =  "NIU", 
     "902" =  "NIU", 
-    .default = "Hispanic"), 
+    .default = "Hispanic") |>
+    factor(levels = c("Not Hispanic", "Hispanic")), 
   DIFFANY = recode(DIFFANY,
     "1" = "No", 
     "2" = "Yes",
-    "0" = "NIU"), 
+    "0" = "NIU") |>
+    factor(levels = c("No", "Yes")), 
   SCHLCOLL = recode(SCHLCOLL, 
     "3" = "College", 
     "4" = "College",
@@ -161,7 +166,8 @@ data_12 <- data_12 |> mutate(
   AGE = case_when(AGE < 30 ~ "18-29", 
                   AGE < 45 ~ "30-44",
                   AGE < 65 ~ "45-64",
-                  .default = "65+"),
+                  .default = "65+") |>
+    factor(levels = c("18-29", "30-44", "45-64", "65+")),
   VOTED = recode(VOTED,
                  "2" = "Yes",
                  "1" = "No",
@@ -194,16 +200,19 @@ data_14 <- data_14 |> mutate(
     RACE == 300 ~ "AmIn", 
     RACE == 700 ~ "Other",
     RACE %in% c(650, 651, 652, 809) ~ "AAPI", 
-    .default = "Multi-racial"),
+    .default = "Multi-racial")  |>
+    factor(levels = c("White", "Black", "AmIn", "AAPI", "Multi-racial")),
   HISPAN = recode(HISPAN,
     "000" = "Not Hispanic",            
     "901" =  "NIU", 
     "902" =  "NIU", 
-    .default = "Hispanic"), 
+    .default = "Hispanic") |>
+    factor(levels = c("Not Hispanic", "Hispanic")), 
   DIFFANY = recode(DIFFANY,
     "1" = "No", 
     "2" = "Yes",
-    "0" = "NIU"), 
+    "0" = "NIU") |>
+    factor(levels = c("No", "Yes")), 
   SCHLCOLL = recode(SCHLCOLL, 
     "3" = "College", 
     "4" = "College",
@@ -221,7 +230,8 @@ data_14 <- data_14 |> mutate(
   AGE = case_when(AGE < 30 ~ "18-29", 
                   AGE < 45 ~ "30-44",
                   AGE < 65 ~ "45-64",
-                  .default = "65+"),
+                  .default = "65+") |>
+    factor(levels = c("18-29", "30-44", "45-64", "65+")),
   VOTED = recode(VOTED,
                  "2" = "Yes",
                  "1" = "No",
@@ -254,16 +264,19 @@ data_16 <- data_16 |> mutate(
     RACE == 300 ~ "AmIn", 
     RACE == 700 ~ "Other",
     RACE %in% c(650, 651, 652, 809) ~ "AAPI", 
-    .default = "Multi-racial"),
+    .default = "Multi-racial")  |>
+    factor(levels = c("White", "Black", "AmIn", "AAPI", "Multi-racial")),
   HISPAN = recode(HISPAN,
     "000" = "Not Hispanic",            
     "901" =  "NIU", 
     "902" =  "NIU", 
-    .default = "Hispanic"), 
+    .default = "Hispanic") |>
+    factor(levels = c("Not Hispanic", "Hispanic")), 
   DIFFANY = recode(DIFFANY,
     "1" = "No", 
     "2" = "Yes",
-    "0" = "NIU"), 
+    "0" = "NIU") |>
+    factor(levels = c("No", "Yes")), 
   SCHLCOLL = recode(SCHLCOLL, 
     "3" = "College", 
     "4" = "College",
@@ -281,7 +294,8 @@ data_16 <- data_16 |> mutate(
   AGE = case_when(AGE < 30 ~ "18-29", 
                   AGE < 45 ~ "30-44",
                   AGE < 65 ~ "45-64",
-                  .default = "65+"),
+                  .default = "65+") |>
+    factor(levels = c("18-29", "30-44", "45-64", "65+")),
   VOTED = recode(VOTED,
                  "2" = "Yes",
                  "1" = "No",
@@ -314,16 +328,19 @@ data_18 <- data_18 |> mutate(
     RACE == 300 ~ "AmIn", 
     RACE == 700 ~ "Other",
     RACE %in% c(650, 651, 652, 809) ~ "AAPI", 
-    .default = "Multi-racial"),
+    .default = "Multi-racial") |>
+    factor(levels = c("White", "Black", "AmIn", "AAPI", "Multi-racial")),
   HISPAN = recode(HISPAN,
     "000" = "Not Hispanic",            
     "901" =  "NIU", 
     "902" =  "NIU", 
-    .default = "Hispanic"), 
+    .default = "Hispanic") |>
+    factor(levels = c("Not Hispanic", "Hispanic")), 
   DIFFANY = recode(DIFFANY,
     "1" = "No", 
     "2" = "Yes",
-    "0" = "NIU"), 
+    "0" = "NIU") |>
+    factor(levels = c("No", "Yes")), 
   SCHLCOLL = recode(SCHLCOLL, 
     "3" = "College", 
     "4" = "College",
@@ -341,7 +358,8 @@ data_18 <- data_18 |> mutate(
   AGE = case_when(AGE < 30 ~ "18-29", 
                   AGE < 45 ~ "30-44",
                   AGE < 65 ~ "45-64",
-                  .default = "65+"),
+                  .default = "65+") |>
+    factor(levels = c("18-29", "30-44", "45-64", "65+")),
   VOTED = recode(VOTED,
                  "2" = "Yes",
                  "1" = "No",
@@ -374,16 +392,19 @@ data_20 <- data_20 |> mutate(
     RACE == 300 ~ "AmIn", 
     RACE == 700 ~ "Other",
     RACE %in% c(650, 651, 652, 809) ~ "AAPI", 
-    .default = "Multi-racial"),
+    .default = "Multi-racial") |>
+    factor(levels = c("White", "Black", "AmIn", "AAPI", "Multi-racial")),
   HISPAN = recode(HISPAN,
     "000" = "Not Hispanic",            
     "901" =  "NIU", 
     "902" =  "NIU", 
-    .default = "Hispanic"), 
+    .default = "Hispanic") |>
+    factor(levels = c("Not Hispanic", "Hispanic")), 
   DIFFANY = recode(DIFFANY,
     "1" = "No", 
     "2" = "Yes",
-    "0" = "NIU"), 
+    "0" = "NIU") |>
+    factor(levels = c("No", "Yes")), 
   SCHLCOLL = recode(SCHLCOLL, 
     "3" = "College", 
     "4" = "College",
@@ -401,7 +422,8 @@ data_20 <- data_20 |> mutate(
   AGE = case_when(AGE < 30 ~ "18-29", 
                   AGE < 45 ~ "30-44",
                   AGE < 65 ~ "45-64",
-                  .default = "65+"),
+                  .default = "65+") |>
+    factor(levels = c("18-29", "30-44", "45-64", "65+")),
   VOTED = recode(VOTED,
                  "2" = "Yes",
                  "1" = "No",
@@ -435,16 +457,19 @@ data_total <- data_total |> mutate(
     RACE == 300 ~ "AmIn", 
     RACE == 700 ~ "Other",
     RACE %in% c(650, 651, 652, 809) ~ "AAPI", 
-    .default = "Multi-racial"),
+    .default = "Multi-racial") |>
+    factor(levels = c("White", "Black", "AmIn", "AAPI", "Multi-racial")),
   HISPAN = recode(HISPAN,
     "000" = "Not Hispanic",            
     "901" =  "NIU", 
     "902" =  "NIU", 
-    .default = "Hispanic"), 
+    .default = "Hispanic") |>
+    factor(levels = c("Not Hispanic", "Hispanic")), 
   DIFFANY = recode(DIFFANY,
     "1" = "No", 
     "2" = "Yes",
-    "0" = "NIU"), 
+    "0" = "NIU") |>
+    factor(levels = c("No", "Yes")), 
    EDUC = case_when(EDUC >= 999 ~ "Unknown", 
                                 EDUC >= 120 ~ "Beyond Bachelors", 
                                 EDUC >= 80 ~ "Some College", 
@@ -455,20 +480,18 @@ data_total <- data_total |> mutate(
   AGE = case_when(AGE < 30 ~ "18-29", 
                   AGE < 45 ~ "30-44",
                   AGE < 65 ~ "45-64",
-                  .default = "65+"),
+                  .default = "65+") |>
+    factor(levels = c("18-29", "30-44", "45-64", "65+")),
   VOTED = recode(VOTED,
                  "2" = "Yes",
                  "1" = "No",
                  .default = NULL)) |>
-  mutate(VOTED = factor(VOTED, levels = c("Yes", "No")),
-         EDUC = factor(EDUC, levels = c("No HS", "HS", "Some College", "Beyond Bachelors"))) |>
+  mutate(VOTED = factor(VOTED, levels = c("Yes", "No"))) |>
   drop_na(VOTED) |>
   select(REGION, STATEFIP, AGE, SEX, RACE, HISPAN, EDUC, DIFFANY, VOTED, VOSUPPWT)
 
 ids <- c(1,2,4,5,6,8,9,10,11,12,13,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,44,45,46,47,48,49,50,51,53,54,55,56)
 states <- c("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "District of Columbia", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming")
-
-states_list <- list("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "District of Columbia", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming")
 
 states_df <- data.frame(ids, as.factor(states))
 
@@ -487,9 +510,117 @@ data_total <- merge(data_total, states_df, by="STATEFIP", all = FALSE)
 #create hur and achen weights
 
 #2010 data
+data_10_weighted <- data_10 |>
+  as_survey_design(weights = VOSUPPWT)
+
+turnout_10 <- data_10_weighted |>
+  group_by(STATE) |>
+  summarize(turnout = survey_mean(VOTED == "Yes", na.rm = TRUE))
+
+turnout_weights_10 <- turnout_10 |>
+  left_join(vep_10, by = "STATE") |>
+  mutate(weight_nonvoter_num = 1 - total_ballot,
+         weight_nonvoter_denom = 1 - turnout,
+         weight_voter = total_ballot/turnout,
+         weight_nonvoter = weight_nonvoter_num/weight_nonvoter_denom) |>
+  select(STATE, weight_nonvoter, weight_voter)
+
+augmented_data_10 <- data_10 |>
+  left_join(turnout_weights_10, by = "STATE") |>
+  mutate(ADJ_VOSUPPWT = case_when(VOTED == "Yes" ~ VOSUPPWT * weight_voter,
+                                  VOTED == "No" ~ VOSUPPWT * weight_nonvoter),
+         STATE = factor(STATE, levels = c("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "District of Columbia", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming")))
+
+hurachen_data_10 <- augmented_data_10 |>
+  as_survey_design(weights = ADJ_VOSUPPWT)
+
+hurachen_turnout_10 <- hurachen_data_10 |>
+  group_by(STATE) |>
+  summarize(turnout = survey_mean(VOTED == "Yes", na.rm = TRUE))
 #2012 data
+data_12_weighted <- data_12 |>
+  as_survey_design(weights = VOSUPPWT)
+
+turnout_12 <- data_12_weighted |>
+  group_by(STATE) |>
+  summarize(turnout = survey_mean(VOTED == "Yes", na.rm = TRUE))
+
+turnout_weights_12 <- turnout_12 |>
+  left_join(vep_12, by = "STATE") |>
+  mutate(weight_nonvoter_num = 1 - total_ballot,
+         weight_nonvoter_denom = 1 - turnout,
+         weight_voter = total_ballot/turnout,
+         weight_nonvoter = weight_nonvoter_num/weight_nonvoter_denom) |>
+  select(STATE, weight_nonvoter, weight_voter)
+
+augmented_data_12 <- data_12 |>
+  left_join(turnout_weights_12, by = "STATE") |>
+  mutate(ADJ_VOSUPPWT = case_when(VOTED == "Yes" ~ VOSUPPWT * weight_voter,
+                                  VOTED == "No" ~ VOSUPPWT * weight_nonvoter),
+         STATE = factor(STATE, levels = c("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "District of Columbia", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming")))
+
+hurachen_data_12 <- augmented_data_12 |>
+  as_survey_design(weights = ADJ_VOSUPPWT)
+
+hurachen_turnout_12 <- hurachen_data_12 |>
+  group_by(STATE) |>
+  summarize(turnout = survey_mean(VOTED == "Yes", na.rm = TRUE))
 #2014 data
+data_14_weighted <- data_14 |>
+  as_survey_design(weights = VOSUPPWT)
+
+turnout_14 <- data_14_weighted |>
+  group_by(STATE) |>
+  summarize(turnout = survey_mean(VOTED == "Yes", na.rm = TRUE))
+
+turnout_weights_14 <- turnout_14 |>
+  left_join(vep_14, by = "STATE") |>
+  mutate(weight_nonvoter_num = 1 - total_ballot,
+         weight_nonvoter_denom = 1 - turnout,
+         weight_voter = total_ballot/turnout,
+         weight_nonvoter = weight_nonvoter_num/weight_nonvoter_denom) |>
+  select(STATE, weight_nonvoter, weight_voter)
+
+augmented_data_14 <- data_14 |>
+  left_join(turnout_weights_14, by = "STATE") |>
+  mutate(ADJ_VOSUPPWT = case_when(VOTED == "Yes" ~ VOSUPPWT * weight_voter,
+                                  VOTED == "No" ~ VOSUPPWT * weight_nonvoter),
+         STATE = factor(STATE, levels = c("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "District of Columbia", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming")))
+
+hurachen_data_14 <- augmented_data_14 |>
+  as_survey_design(weights = ADJ_VOSUPPWT)
+
+hurachen_turnout_14 <- hurachen_data_14 |>
+  group_by(STATE) |>
+  summarize(turnout = survey_mean(VOTED == "Yes", na.rm = TRUE))
 #2016 data
+data_16_weighted <- data_16 |>
+  as_survey_design(weights = VOSUPPWT)
+
+turnout_16 <- data_16_weighted |>
+  group_by(STATE) |>
+  summarize(turnout = survey_mean(VOTED == "Yes", na.rm = TRUE))
+
+turnout_weights_16 <- turnout_16 |>
+  left_join(vep_16, by = "STATE") |>
+  mutate(weight_nonvoter_num = 1 - total_ballot,
+         weight_nonvoter_denom = 1 - turnout,
+         weight_voter = total_ballot/turnout,
+         weight_nonvoter = weight_nonvoter_num/weight_nonvoter_denom) |>
+  select(STATE, weight_nonvoter, weight_voter)
+
+augmented_data_16 <- data_16 |>
+  left_join(turnout_weights_16, by = "STATE") |>
+  mutate(ADJ_VOSUPPWT = case_when(VOTED == "Yes" ~ VOSUPPWT * weight_voter,
+                                  VOTED == "No" ~ VOSUPPWT * weight_nonvoter),
+         STATE = factor(STATE, levels = c("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "District of Columbia", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming")))
+
+hurachen_data_16 <- augmented_data_16 |>
+  as_survey_design(weights = ADJ_VOSUPPWT)
+
+hurachen_turnout_16 <- hurachen_data_16 |>
+  group_by(STATE) |>
+  summarize(turnout = survey_mean(VOTED == "Yes", na.rm = TRUE))
 #2018 data
 data_18_weighted <- data_18 |>
   as_survey_design(weights = VOSUPPWT)
@@ -509,7 +640,8 @@ turnout_weights_18 <- turnout_18 |>
 augmented_data_18 <- data_18 |>
   left_join(turnout_weights_18, by = "STATE") |>
   mutate(ADJ_VOSUPPWT = case_when(VOTED == "Yes" ~ VOSUPPWT * weight_voter,
-                                  VOTED == "No" ~ VOSUPPWT * weight_nonvoter))
+                                  VOTED == "No" ~ VOSUPPWT * weight_nonvoter),
+         STATE = factor(STATE, levels = c("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "District of Columbia", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming")))
 
 hurachen_data_18 <- augmented_data_18 |>
   as_survey_design(weights = ADJ_VOSUPPWT)
@@ -518,6 +650,35 @@ hurachen_turnout_18 <- hurachen_data_18 |>
   group_by(STATE) |>
   summarize(turnout = survey_mean(VOTED == "Yes", na.rm = TRUE))
 
+#2020 data
+data_20_weighted <- data_20 |>
+  as_survey_design(weights = VOSUPPWT)
+
+turnout_20 <- data_20_weighted |>
+  group_by(STATE) |>
+  summarize(turnout = survey_mean(VOTED == "Yes", na.rm = TRUE))
+
+turnout_weights_20 <- turnout_20 |>
+  left_join(vep_20, by = "STATE") |>
+  mutate(weight_nonvoter_num = 1 - total_ballot,
+         weight_nonvoter_denom = 1 - turnout,
+         weight_voter = total_ballot/turnout,
+         weight_nonvoter = weight_nonvoter_num/weight_nonvoter_denom) |>
+  select(STATE, weight_nonvoter, weight_voter)
+
+augmented_data_20 <- data_20 |>
+  left_join(turnout_weights_20, by = "STATE") |>
+  mutate(ADJ_VOSUPPWT = case_when(VOTED == "Yes" ~ VOSUPPWT * weight_voter,
+                                  VOTED == "No" ~ VOSUPPWT * weight_nonvoter),
+         STATE = factor(STATE, levels = c("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "District of Columbia", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"))) |>
+  select(STATE, AGE, EDUC, RACE, HISPAN, ADJ_VOSUPPWT, DIFFANY, VOTED)
+
+hurachen_data_20 <- augmented_data_20 |>
+  as_survey_design(weights = ADJ_VOSUPPWT)
+
+hurachen_turnout_20 <- hurachen_data_20 |>
+  group_by(STATE) |>
+  summarize(turnout = survey_mean(VOTED == "Yes", na.rm = TRUE))
 ```
 
 ```{r}
@@ -680,40 +841,98 @@ data_total |>
 
 ```{r}
 #MODELLING
-turnout_mod_2010 <- svyglm(formula = VOTED ~ STATE + RACE + HISPAN + DIFFANY + AGE + EDUC + STATE*RACE + RACE*EDUC + RACE*HISPAN + AGE*RACE, design = hurachen_data_18, family = quasibinomial)
+turnout_mod_2010 <- svyglm(formula = VOTED ~ STATE + RACE + HISPAN + DIFFANY + AGE + EDUC + STATE*RACE + RACE*EDUC + RACE*HISPAN + AGE*RACE, design = hurachen_data_10, family = quasibinomial)
 
 summary(turnout_mod_2010)
+tidy_turnout_mod_2010 <- tidy(turnout_mod_2010)
+write.xlsx(tidy_turnout_mod_2010, 'tidy-2010.xlsx')
 
-turnout_mod_2012 <- svyglm(formula = VOTED ~ STATE + RACE + HISPAN + DIFFANY + AGE + EDUC + STATE*RACE + RACE*EDUC + RACE*HISPAN + AGE*RACE, design = hurachen_data_18, family = quasibinomial)
+
+turnout_mod_2012 <- svyglm(formula = VOTED ~ STATE + RACE + HISPAN + DIFFANY + AGE + EDUC + STATE*RACE + RACE*EDUC + RACE*HISPAN + AGE*RACE, design = hurachen_data_12, family = quasibinomial)
 
 summary(turnout_mod_2012)
+tidy_turnout_mod_2012 <- tidy(turnout_mod_2012)
+write.xlsx(tidy_turnout_mod_2012, 'tidy-2012.xlsx')
 
-turnout_mod_2014 <- svyglm(formula = VOTED ~ STATE + RACE + HISPAN + DIFFANY + AGE + EDUC + STATE*RACE + RACE*EDUC + RACE*HISPAN + AGE*RACE, design = hurachen_data_18, family = quasibinomial)
+turnout_mod_2014 <- svyglm(formula = VOTED ~ STATE + RACE + HISPAN + DIFFANY + AGE + EDUC + STATE*RACE + RACE*EDUC + RACE*HISPAN + AGE*RACE, design = hurachen_data_14, family = quasibinomial)
 
 summary(turnout_mod_2014)
+tidy_turnout_mod_2014 <- tidy(turnout_mod_2014)
+write.xlsx(tidy_turnout_mod_2014, 'tidy-2014.xlsx')
 
-turnout_mod_2016 <- svyglm(formula = VOTED ~ STATE + RACE + HISPAN + DIFFANY + AGE + EDUC + STATE*RACE + RACE*EDUC + RACE*HISPAN + AGE*RACE, design = hurachen_data_18, family = quasibinomial)
+turnout_mod_2016 <- svyglm(formula = VOTED ~ STATE + RACE + HISPAN + DIFFANY + AGE + EDUC + STATE*RACE + RACE*EDUC + RACE*HISPAN + AGE*RACE, design = hurachen_data_16, family = quasibinomial)
 
 summary(turnout_mod_2016)
+tidy_turnout_mod_2016 <- tidy(turnout_mod_2016)
+write.xlsx(tidy_turnout_mod_2016, 'tidy-2016.xlsx')
 
 turnout_mod_2018 <- svyglm(formula = VOTED ~ STATE + RACE + HISPAN + DIFFANY + AGE + EDUC + STATE*RACE + RACE*EDUC + RACE*HISPAN + AGE*RACE, design = hurachen_data_18, family = quasibinomial)
 
 summary(turnout_mod_2018)
+tidy_turnout_mod_2018 <- tidy(turnout_mod_2018)
+write.xlsx(tidy_turnout_mod_2018, 'tidy-2018.xlsx')
 
-turnout_mod_2020 <- svyglm(formula = VOTED ~ STATE + RACE + HISPAN + DIFFANY + AGE + EDUC + STATE*RACE + RACE*EDUC + RACE*HISPAN + AGE*RACE, design = hurachen_data_18, family = quasibinomial)
+turnout_mod_2020 <- svyglm(formula = VOTED ~ STATE + RACE + HISPAN + DIFFANY + AGE + EDUC + STATE*RACE + RACE*EDUC + RACE*HISPAN + AGE*RACE, design = hurachen_data_20, family = quasibinomial)
 
-summary(turnout_mod_2020)
+turnout_mod_2020_race <- svyglm(formula = VOTED ~ STATE + RACE + STATE*RACE, design = hurachen_data_20, family = quasibinomial)
+
+summary(turnout_mod_2020_race)
+tidy_turnout_mod_2020 <- tidy(turnout_mod_2020)
+write.xlsx(tidy_turnout_mod_2020, 'tidy-2020.xlsx')
+
 ```
 
 ```{r}
 #RACE COEFFS
 #for state1 through state 51, predict(turnout_mod_thatyear, )
+race_baseline <- tibble(STATE = rep(c("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "District of Columbia", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"), each = 10), 
+                             RACE = rep(c("White", "Black", "AmIn", "AAPI", "Multi-racial"), each = 2, times = 51), 
+                             HISPAN = rep(c("Not Hispanic", "Hispanic"), 255),
+                             AGE = rep(c("18-29"), 510),
+                             DIFFANY = rep(c("No"), 510), 
+                             EDUC = rep(c("No HS"), 510))
+
+disab_baseline <- tibble(STATE = rep(c("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "District of Columbia", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"), each = 2), 
+                             RACE = rep(c("White"), 102), 
+                             HISPAN = rep(c("Not Hispanic"), 102),
+                             AGE = rep(c("18-29"), 102),
+                             DIFFANY = rep(c("No", "Yes"), 51), 
+                             EDUC = rep(c("No HS"), 102))
+
+educ_baseline <- tibble(STATE = rep(c("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "District of Columbia", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"), each = 4), 
+                             RACE = rep(c("White"), 204), 
+                             HISPAN = rep(c("Not Hispanic"), 204),
+                             AGE = rep(c("18-29"), 204),
+                             DIFFANY = rep(c("No"), 204), 
+                             EDUC = rep(c("No HS", "HS", "Some College", "Beyond Bachelors"), 51))
+
+#RACE = rep(c("White", "Black", "AmIn", "AAPI", "Multi-racial"))
+#HISPAN = rep(c("Not Hispanic", "Hispanic"), )
+#AGE = rep(c("18-29", "30-44", "45-64", "65+"), )
+#DIFFANY = rep(c("No", "Yes"), )
+#EDUC = rep(c("No HS", "HS", "Some College", "Beyond Bachelors"), )
+
+write.xlsx(race_baseline, "race_baseline.xlsx")
 ```
 
 ```{r}
 #ETHNICITY COEFFS
+#mutate(STATE = factor(STATE, levels = c("Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "District of Columbia", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming")),
+         #RACE = factor(RACE, levels = c("White", "Black", "AmIn", "AAPI", "Multi-racial")),
+         #HISPAN = factor(HISPAN, levels = c("Not Hispanic", "Hispanic")),
+         #EDUC = factor(EDUC, levels = c("No HS", "HS", "Some College", "Beyond Bachelors")),
+         #AGE = factor(AGE, levels = c("18-29", "30-44", "45-64", "65+")),
+        # DIFFANY = factor(DIFFANY, levels = c("No", "Yes")))
 ```
 
 ```{r}
 #EDUC COEFFS
+```
+
+```{r}
+#AGE COEFFS
+```
+
+```{r}
+#DISAB COEFFS
 ```
