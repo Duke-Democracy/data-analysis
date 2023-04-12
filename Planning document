@@ -1,0 +1,9 @@
+Path 1: Bayesian MRP 
+- Rebuild data using 2010, 12, 14, 16, 20 data
+- Run Bayesian pre-post
+- Collect coefficients in a tab
+
+
+Path 2: Survey GLM
+- Adjust each year's turnout by using the VEP, creating new weight variable
+- Use the SurveyGLM command to build a model based on CPS data directly

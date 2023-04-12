@@ -11,6 +11,7 @@ editor_options:
 library(tidyverse)
 library(cpsvote)
 library(srvyr)
+library(survey)
 library(rstanarm)
 library(bayesplot)
 library(purrr)
@@ -485,6 +486,11 @@ data_total <- merge(data_total, states_df, by="STATEFIP", all = FALSE)
 ```{r}
 #create hur and achen weights
 
+#2010 data
+#2012 data
+#2014 data
+#2016 data
+#2018 data
 data_18_weighted <- data_18 |>
   as_survey_design(weights = VOSUPPWT)
 
@@ -517,6 +523,39 @@ hurachen_turnout_18 <- hurachen_data_18 |>
 ```{r}
 #look for interactions
 
+#state, age
+data_total |>
+  group_by(AGE, STATE) |>
+  summarize(age_diffany_turnout = sum(VOTED == "Yes")/n()) |>
+  ggplot(aes(x = STATE, y = age_diffany_turnout, color = AGE)) +
+  geom_point()
+
+#state, ethnicity
+data_total |>
+  group_by(HISPAN, STATE) |>
+  summarize(age_diffany_turnout = sum(VOTED == "Yes")/n()) |>
+  ggplot(aes(x = STATE, y = age_diffany_turnout, color = HISPAN)) +
+  geom_point()
+
+#state, disability
+data_total |>
+  group_by(DIFFANY, STATE) |>
+  summarize(age_diffany_turnout = sum(VOTED == "Yes")/n()) |>
+  ggplot(aes(x = STATE, y = age_diffany_turnout, color = DIFFANY)) +
+  geom_point()
+#state, educ
+data_total |>
+  group_by(EDUC, STATE) |>
+  summarize(age_diffany_turnout = sum(VOTED == "Yes")/n()) |>
+  ggplot(aes(x = STATE, y = age_diffany_turnout, color = EDUC)) +
+  geom_point()
+#state, race
+data_total |>
+  group_by(RACE, STATE) |>
+  summarize(age_diffany_turnout = sum(VOTED == "Yes")/n()) |>
+  ggplot(aes(x = STATE, y = age_diffany_turnout, color = RACE)) +
+  geom_point()
+
 #no interaction between age, disability
 data_total |>
   group_by(AGE, DIFFANY) |>
@@ -545,9 +584,6 @@ data_total |>
   summarize(age_race_turnout = sum(VOTED == "Yes")/n()) |>
   ggplot(aes(x = AGE, y = age_race_turnout, color = RACE)) +
   geom_point()
-
-
-# ethnicity, race
 
 # ethnicity, disability
 data_total |>
@@ -592,17 +628,92 @@ data_total |>
   ggplot(aes(x = EDUC, y = age_race_turnout, color = DIFFANY)) +
   geom_point()
 
+# age, ethnicity, race YES
+data_total |>
+  group_by(DIFFANY, AGE, RACE) |>
+  summarize(age_race_turnout = sum(VOTED == "Yes")/n()) |>
+  ggplot(aes(x = AGE, y = age_race_turnout, color = RACE)) +
+  geom_point() +
+  facet_wrap(vars(DIFFANY))
 
-# age, ethnicity, education
-# age, ethnicity, disability
-# age, ethnicity, race
-# age, race, 
+# race, education, ethnicity YES
+data_total |>
+  group_by(EDUC, HISPAN, RACE) |>
+  summarize(age_race_turnout = sum(VOTED == "Yes")/n()) |>
+  ggplot(aes(x = EDUC, y = age_race_turnout, color = RACE)) +
+  geom_point() +
+  facet_wrap(vars(HISPAN))
+
+# race, age, disability NO
+data_total |>
+  group_by(AGE, DIFFANY, RACE) |>
+  summarize(age_race_turnout = sum(VOTED == "Yes")/n()) |>
+  ggplot(aes(x = AGE, y = age_race_turnout, color = RACE)) +
+  geom_point() +
+  facet_wrap(vars(DIFFANY))
+
+#race, ethnicity, disability YES
+data_total |>
+  group_by(DIFFANY, HISPAN, RACE) |>
+  summarize(age_race_turnout = sum(VOTED == "Yes")/n()) |>
+  ggplot(aes(x = DIFFANY, y = age_race_turnout, color = RACE)) +
+  geom_point() +
+  facet_wrap(vars(HISPAN))
+
+#educ, ethnicity, disability YES
+data_total |>
+  group_by(DIFFANY, HISPAN, EDUC) |>
+  summarize(age_race_turnout = sum(VOTED == "Yes")/n()) |>
+  ggplot(aes(x = EDUC, y = age_race_turnout, color = DIFFANY)) +
+  geom_point() +
+  facet_wrap(vars(HISPAN))
+
+#educ, race, age
+
+data_total |>
+  group_by(AGE, RACE, EDUC) |>
+  summarize(age_race_turnout = sum(VOTED == "Yes")/n()) |>
+  ggplot(aes(x = EDUC, y = age_race_turnout, color = AGE)) +
+  geom_point() +
+  facet_wrap(vars(RACE))
 ```
 
 ```{r}
-#generate survey lm
+#MODELLING
+turnout_mod_2010 <- svyglm(formula = VOTED ~ STATE + RACE + HISPAN + DIFFANY + AGE + EDUC + STATE*RACE + RACE*EDUC + RACE*HISPAN + AGE*RACE, design = hurachen_data_18, family = quasibinomial)
 
-svyglm(formula = abortion ~ importance + gender + education +
-urban, design = CES.svy, family = quasibinomial)
+summary(turnout_mod_2010)
 
+turnout_mod_2012 <- svyglm(formula = VOTED ~ STATE + RACE + HISPAN + DIFFANY + AGE + EDUC + STATE*RACE + RACE*EDUC + RACE*HISPAN + AGE*RACE, design = hurachen_data_18, family = quasibinomial)
+
+summary(turnout_mod_2012)
+
+turnout_mod_2014 <- svyglm(formula = VOTED ~ STATE + RACE + HISPAN + DIFFANY + AGE + EDUC + STATE*RACE + RACE*EDUC + RACE*HISPAN + AGE*RACE, design = hurachen_data_18, family = quasibinomial)
+
+summary(turnout_mod_2014)
+
+turnout_mod_2016 <- svyglm(formula = VOTED ~ STATE + RACE + HISPAN + DIFFANY + AGE + EDUC + STATE*RACE + RACE*EDUC + RACE*HISPAN + AGE*RACE, design = hurachen_data_18, family = quasibinomial)
+
+summary(turnout_mod_2016)
+
+turnout_mod_2018 <- svyglm(formula = VOTED ~ STATE + RACE + HISPAN + DIFFANY + AGE + EDUC + STATE*RACE + RACE*EDUC + RACE*HISPAN + AGE*RACE, design = hurachen_data_18, family = quasibinomial)
+
+summary(turnout_mod_2018)
+
+turnout_mod_2020 <- svyglm(formula = VOTED ~ STATE + RACE + HISPAN + DIFFANY + AGE + EDUC + STATE*RACE + RACE*EDUC + RACE*HISPAN + AGE*RACE, design = hurachen_data_18, family = quasibinomial)
+
+summary(turnout_mod_2020)
+```
+
+```{r}
+#RACE COEFFS
+#for state1 through state 51, predict(turnout_mod_thatyear, )
+```
+
+```{r}
+#ETHNICITY COEFFS
+```
+
+```{r}
+#EDUC COEFFS
 ```
